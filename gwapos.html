@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Record Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+    margin: 0;
+    font-family: 'Poppins', Arial, sans-serif;
+    background: radial-gradient(circle at top, #a8e6ff, #7b5cff);
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* floating clouds + soft glow */
+body::before, body::after {
+    content: "";
+    position: absolute;
+    width: 500px;
+    height: 200px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: float 25s linear infinite;
+}
+body::after {
+    top: 40%;
+    left: 50%;
+    animation-duration: 30s;
+}
+
+@keyframes float {
+    0% { transform: translateY(0) translateX(0);}
+    50% { transform: translateY(-40px) translateX(40px);}
+    100% { transform: translateY(0) translateX(0);}
+}
+
+.container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.card {
+    background: rgba(255,255,255,0.97);
+    padding: 25px 20px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+.card:hover {
+    transform: translateY(-3px);
+}
+
+h1, h2 {
+    text-align: center;
+    font-weight: 700;
+    color: #3d0075;
+}
+
+.flower {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+input, button {
+    width: 100%;
+    padding: 12px 15px;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+input:focus {
+    border-color: #7b5cff;
+    box-shadow: 0 0 12px rgba(123,92,255,0.4);
+}
+button {
+    background: linear-gradient(135deg, #7b5cff, #a8e6ff);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+button:hover {
+    opacity: 0.9;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background: rgba(123,92,255,0.15);
+    font-weight: 600;
+}
+
+.center {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Password eye button on the right */
+.password-container {
+    position: relative;
+}
+.password-container input {
+    width: 100%;
+    padding-right: 40px; /* space for eye button */
+    box-sizing: border-box;
+}
+.password-container .eye-btn {
+    position: absolute;
+    top: 50%;
+    right: 10px; /* right edge inside input */
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+}
+.password-container .eye-btn:focus {
+    outline: none;
+}
+
+@keyframes sparkle {
+    0%,100% {opacity: 0;}
+    50% {opacity: 1;}
+}
+.sparkle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: sparkle 2s infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- LOGIN / REGISTER CARD -->
+<div class="card" id="loginCard">
+<h1>🌸 Record Manager 🌸</h1>
+<div class="flower">🌼 🌸 🌺 🌷 🌼</div>
+<p class="center"><b>Login or Register to Continue</b></p>
+
+<!-- LOGIN FORM -->
+<div id="loginForm">
+<input id="username" placeholder="Username">
+<div class="password-container">
+  <input type="password" id="password" placeholder="Password">
+  <button type="button" class="eye-btn" onclick="togglePassword('password', this)">👁️</button>
+</div>
+<button onclick="login()">Login</button>
+<p class="center">Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+<p id="loginMsg" class="center" style="color:red"></p>
+</div>
+
+<!-- REGISTER FORM -->
+<div id="registerForm" class="hidden">
+<input id="regUsername" placeholder="Choose Username">
+<div class="password-container">
+  <input type="password" id="regPassword" placeholder="Choose Password">
+  <button type="button" class="eye-btn" onclick="togglePassword('regPassword', this)">👁️</button>
+</div>
+<button onclick="register()">Register</button>
+<p class="center">Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+<p id="regMsg" class="center" style="color:red"></p>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+
+<div class="card">
+<h2>Add Record</h2>
+<input id="name" placeholder="Name">
+<input id="subject" placeholder="Subject">
+<input id="score" type="number" placeholder="Score">
+<button onclick="addRecord()">Add Record</button>
+</div>
+
+<!-- SEARCH + RESULTS + STATS -->
+<div class="card">
+<h2>Search Records</h2>
+<input id="searchQuery" placeholder="Search by name">
+<button onclick="searchRecord()">Search</button>
+
+<div id="resultsCard" class="hidden" style="margin-top:15px;">
+  <div class="table-wrap">
+    <table id="recordsTable">
+      <tr>
+        <th>Name</th>
+        <th>Subject</th>
+        <th>Score</th>
+        <th>Date</th>
+        <th>Delete</th>
+      </tr>
+    </table>
+  </div>
+  <div style="margin-top:10px;">
+    <p><b>Average:</b> <span id="avg">--</span></p>
+    <p><b>Highest:</b> <span id="high">--</span></p>
+    <p><b>Lowest:</b> <span id="low">--</span></p>
+  </div>
+</div>
+</div>
+
+<div class="card">
+<button onclick="logout()">Logout</button>
+</div>
+
+</div>
+</div>
+
+<script>
+// sparkle effect
+for(let i=0;i<50;i++){
+    let s = document.createElement("div");
+    s.className="sparkle";
+    s.style.top = Math.random()*100+"%";
+    s.style.left = Math.random()*100+"%";
+    s.style.animationDuration = (Math.random()*3+2)+"s";
+    s.style.width = s.style.height = Math.random()*3+2+"px";
+    document.body.appendChild(s);
+}
+
+// users and records
+let users = JSON.parse(localStorage.getItem("users")) || { admin: "1234" };
+let records = JSON.parse(localStorage.getItem("records")) || [];
+
+// show/hide login/register
+function showRegister() {
+    document.getElementById("loginForm").classList.add("hidden");
+    document.getElementById("registerForm").classList.remove("hidden");
+    document.getElementById("loginMsg").innerText = "";
+}
+function showLogin() {
+    document.getElementById("loginForm").classList.remove("hidden");
+    document.getElementById("registerForm").classList.add("hidden");
+    document.getElementById("regMsg").innerText = "";
+}
+
+// toggle password visibility
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    if(input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🙈";
+    } else {
+        input.type = "password";
+        btn.innerText = "👁️";
+    }
+}
+
+// login/register/logout
+function login() {
+    const u = document.getElementById("username").value;
+    const p = document.getElementById("password").value;
+    if(users[u] && users[u] === p) {
+        localStorage.setItem("loggedInUser", u);
+        showDashboard();
+    } else {
+        document.getElementById("loginMsg").innerText = "Invalid username or password 😢";
+    }
+}
+
+function register() {
+    const u = document.getElementById("regUsername").value;
+    const p = document.getElementById("regPassword").value;
+    if(!u || !p) return document.getElementById("regMsg").innerText = "Fill all fields";
+    if(users[u]) return document.getElementById("regMsg").innerText = "Username already exists 😢";
+    users[u] = p;
+    localStorage.setItem("users", JSON.stringify(users));
+    document.getElementById("regMsg").style.color = "green";
+    document.getElementById("regMsg").innerText = "Account created! You can now login ✅";
+}
+
+function logout() {
+    localStorage.removeItem("loggedInUser");
+    document.getElementById("loginCard").classList.remove("hidden");
+    document.getElementById("dashboard").classList.add("hidden");
+}
+
+function showDashboard() {
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+}
+
+// add record
+function addRecord() {
+    const name = document.getElementById("name").value;
+    const subject = document.getElementById("subject").value;
+    const score = parseFloat(document.getElementById("score").value);
+    if(!name || !subject || isNaN(score)) return alert("Fill all fields");
+    const date = new Date().toISOString().split("T")[0];
+    records.push({name, subject, score, date});
+    localStorage.setItem("records", JSON.stringify(records));
+    document.getElementById("name").value = "";
+    document.getElementById("subject").value = "";
+    document.getElementById("score").value = "";
+}
+
+// search + show records & stats
+function searchRecord() {
+    const query = document.getElementById("searchQuery").value.toLowerCase();
+    const filtered = records.filter(r => r.name.toLowerCase().includes(query));
+    updateTable(filtered);
+}
+
+function updateTable(displayRecords=null) {
+    const recs = displayRecords || [];
+    const resultsCard = document.getElementById("resultsCard");
+    const table = document.getElementById("recordsTable");
+
+    if(recs.length === 0){
+        resultsCard.classList.add("hidden");
+        return;
+    } else {
+        resultsCard.classList.remove("hidden");
+    }
+
+    table.innerHTML = "<tr><th>Name</th><th>Subject</th><th>Score</th><th>Date</th><th>Delete</th></tr>";
+
+    recs.forEach((r,i) => {
+        let row = table.insertRow();
+        row.insertCell(0).innerText = r.name;
+        row.insertCell(1).innerText = r.subject;
+        row.insertCell(2).innerText = r.score;
+        row.insertCell(3).innerText = r.date;
+        let delBtn = document.createElement("button");
+        delBtn.innerText = "Delete";
+        delBtn.onclick = () => { 
+            records.splice(records.indexOf(r),1); 
+            localStorage.setItem("records", JSON.stringify(records));
+            updateTable(); 
+        };
+        row.insertCell(4).appendChild(delBtn);
+    });
+
+    const scores = recs.map(r=>r.score);
+    document.getElementById("avg").innerText = (scores.reduce((a,b)=>a+b)/scores.length).toFixed(2);
+    document.getElementById("high").innerText = Math.max(...scores);
+    document.getElementById("low").innerText = Math.min(...scores);
+}
+
+// auto-login
+window.onload = function() {
+    const user = localStorage.getItem("loggedInUser");
+    if(user && users[user]) showDashboard();
+}
+</script>
+
+</body>
+</html>
